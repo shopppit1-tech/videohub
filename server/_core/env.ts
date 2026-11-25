@@ -12,4 +12,7 @@ export const ENV = {
   get metaAppSecret() { return process.env.META_APP_SECRET ?? ""; },
   get metaGraphVersion() { return process.env.META_GRAPH_VERSION ?? "v27.0"; },
   get metaRedirectUri() { return process.env.META_REDIRECT_URI ?? ""; },
+  get googleClientId() { return process.env.GOOGLE_CLIENT_ID ?? ""; },
+  get googleClientSecret() { return process.env.GOOGLE_CLIENT_SECRET ?? ""; },
+  get googleRedirectUri() { return process.env.GOOGLE_REDIRECT_URI ?? ""; },
 };

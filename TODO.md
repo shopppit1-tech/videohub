@@ -7,7 +7,10 @@
 - [ ] Batas tampilan maksimal 9 Page dan 9 video tetap diterapkan.
 
 ## Login dan koneksi resmi Meta
-- [ ] Pengguna yang belum masuk diarahkan ke Manus OAuth aplikasi.
+- [ ] Pengguna masuk ke aplikasi memakai Google OAuth; login Google tidak menggantikan koneksi Meta.
+- [ ] `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` hanya dibaca server-side dari secret environment.
+- [ ] Callback Google membuat sesi aplikasi yang sama dengan route API dan tidak menyimpan token Google di browser.
+- [x] Pengguna yang belum masuk diarahkan ke Google OAuth aplikasi.
 - [ ] Tombol Hubungkan Meta memakai OAuth Authorization Code resmi Meta.
 - [ ] `META_APP_ID` dan `META_APP_SECRET` hanya dibaca server-side dari secret environment.
 - [ ] OAuth state memakai nonce sekali pakai dan cookie HttpOnly yang aman.

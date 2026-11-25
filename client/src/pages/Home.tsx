@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import {
@@ -10,6 +9,7 @@ import {
   ChevronRight,
   CirclePlay,
   FileVideo,
+  Globe2,
   Home as HomeIcon,
   Link2,
   LogIn,
@@ -33,6 +33,10 @@ const tabs = [
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
+
+const startGoogleLogin = () => {
+  window.location.href = "/api/google/connect";
+};
 
 function Initials({ value }: { value: string }) {
   const initials = value.split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase();
@@ -65,9 +69,19 @@ export default function Home() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get("meta_error");
+    const googleError = params.get("google_error");
     if (error) {
       toast.error(decodeURIComponent(error));
       window.history.replaceState({}, "", "/");
+    }
+    if (googleError) {
+      toast.error(decodeURIComponent(googleError));
+      window.history.replaceState({}, "", "/");
+    }
+    if (params.get("google") === "connected") {
+      toast.success("Login Google berhasil.");
+      window.history.replaceState({}, "", "/");
+      void auth.refresh();
     }
     if (params.get("meta") === "connected") {
       toast.success("Meta berhasil terhubung.");
@@ -84,7 +98,7 @@ export default function Home() {
   };
   const connectMeta = () => {
     if (!auth.isAuthenticated) {
-      startLogin();
+      startGoogleLogin();
       return;
     }
     window.location.href = "/api/meta/connect";
@@ -118,7 +132,7 @@ export default function Home() {
         </nav>
         <div className="nav-footer">
           <div className="safe-note"><ShieldCheck size={16} /><span>Token disimpan aman di server</span></div>
-          {auth.user ? <button className="logout-button" onClick={() => void auth.logout()}><LogOut size={16} /> Keluar</button> : <button className="logout-button" onClick={() => startLogin()}><LogIn size={16} /> Masuk aplikasi</button>}
+          {auth.user ? <button className="logout-button" onClick={() => void auth.logout()}><LogOut size={16} /> Keluar</button> : <button className="logout-button" onClick={() => startGoogleLogin()}><LogIn size={16} /> Masuk dengan Google</button>}
         </div>
       </aside>
       {mobileNavOpen && <button className="nav-backdrop" onClick={() => setMobileNavOpen(false)} aria-label="Tutup menu" />}
@@ -128,19 +142,29 @@ export default function Home() {
           <button className="menu-button" onClick={() => setMobileNavOpen(true)} aria-label="Buka menu"><Menu size={20} /></button>
           <div className="topbar-copy"><span className="eyebrow">{activeTab === "home" ? "Overview" : tabs.find(tab => tab.id === activeTab)?.label}</span><h1>{activeTab === "home" ? "Dashboard" : tabs.find(tab => tab.id === activeTab)?.label}</h1></div>
           <div className="topbar-actions">
-            {auth.user ? <div className="user-chip"><div className="user-avatar"><Initials value={auth.user.name || auth.user.email || "User"} /></div><span>{auth.user.name || "Pengguna"}</span></div> : <Button className="small-action" onClick={() => startLogin()}><LogIn size={16} /> Masuk</Button>}
+            {auth.user ? <div className="user-chip"><div className="user-avatar"><Initials value={auth.user.name || auth.user.email || "User"} /></div><span>{auth.user.name || "Pengguna"}</span></div> : <Button className="small-action" onClick={() => startGoogleLogin()}><LogIn size={16} /> Masuk Google</Button>}
           </div>
         </header>
 
-        {activeTab === "settings" ? <SettingsPanel configured={Boolean(metaStatus.data?.configured)} onDisconnect={() => disconnect.mutate()} disconnecting={disconnect.isPending} /> : activeTab === "accounts" ? <AccountsPanel accounts={accounts} isAuthenticated={auth.isAuthenticated} configured={Boolean(metaStatus.data?.configured)} onConnect={connectMeta} loading={accountsQuery.isLoading} /> : activeTab === "videos" ? <VideosPanel videos={videos} accounts={accounts} isAuthenticated={auth.isAuthenticated} configured={Boolean(metaStatus.data?.configured)} onConnect={connectMeta} loading={videosQuery.isLoading} onPlay={playVideo} /> : <DashboardPanel auth={auth} accounts={accounts} videos={videos} configured={Boolean(metaStatus.data?.configured)} onConnect={connectMeta} loading={accountsQuery.isLoading || videosQuery.isLoading} onNavigate={goTo} onPlay={playVideo} />}
+        {activeTab === "settings" ? <SettingsPanel configured={Boolean(metaStatus.data?.configured)} onDisconnect={() => disconnect.mutate()} disconnecting={disconnect.isPending} /> : activeTab === "accounts" ? <AccountsPanel accounts={accounts} isAuthenticated={auth.isAuthenticated} configured={Boolean(metaStatus.data?.configured)} onConnect={connectMeta} loading={accountsQuery.isLoading} /> : activeTab === "videos" ? <VideosPanel videos={videos} accounts={accounts} isAuthenticated={auth.isAuthenticated} configured={Boolean(metaStatus.data?.configured)} onConnect={connectMeta} loading={videosQuery.isLoading} onPlay={playVideo} /> : <ShortcutPanel onNavigate={goTo} />}
       </main>
     </div>
   );
 }
 
+function ShortcutPanel({ onNavigate }: { onNavigate: (tab: TabId) => void }) {
+  const openFacebook = () => window.open("https://www.facebook.com/", "_blank", "noopener,noreferrer");
+  const shortcuts = Array.from({ length: 9 }, (_, index) => index + 1);
+  return <div className="page-body">
+    <section className="hero-card shortcut-hero"><div className="hero-glow" /><div className="hero-content"><span className="kicker">BROWSER SHORTCUTS</span><h2>Buka Facebook asli dari satu tempat.</h2><p>Pilih salah satu pintasan di bawah. Facebook dibuka di browser resmi; aplikasi ini tidak menyimpan password atau membuat halaman login tiruan.</p><div className="hero-actions"><Button className="primary-action" onClick={openFacebook}><Globe2 size={17} /> Buka Facebook di Chrome</Button><span className="security-label"><ShieldCheck size={15} /> Login langsung di browser</span></div></div><div className="hero-orbit"><Globe2 size={42} /><span>External browser</span></div></section>
+    <section className="section-block"><SectionHeading title="9 pintasan akun" subtitle="Setiap tombol membuka Facebook resmi di browser" action="Lihat video" onClick={() => onNavigate("videos")} /><div className="shortcut-grid">{shortcuts.map(number => <button className="shortcut-card" key={number} onClick={openFacebook}><div className="shortcut-number">{String(number).padStart(2, "0")}</div><div className="shortcut-copy"><strong>Akun {String(number).padStart(2, "0")}</strong><span>Buka Facebook di Chrome</span></div><ArrowUpRight size={18} /></button>)}</div></section>
+    <div className="browser-note"><Globe2 size={17} /><div><strong>Catatan browser</strong><span>Chrome biasa dapat memakai sesi yang sama. Untuk akun berbeda, gunakan profil Chrome, mode Tamu, atau browser terpisah secara manual.</span></div></div>
+  </div>;
+}
+
 function DashboardPanel({ auth, accounts, videos, configured, onConnect, loading, onNavigate, onPlay }: any) {
   return <div className="page-body">
-    <section className="hero-card"><div className="hero-glow" /><div className="hero-content"><span className="kicker">MEDIA WORKSPACE</span><h2>Kelola sumber video resmi Anda.</h2><p>Hubungkan Page Meta, lihat video yang benar-benar diizinkan, lalu pilih dan putar secara manual.</p><div className="hero-actions"><Button className="primary-action" onClick={onConnect}>{auth.isAuthenticated ? <><Link2 size={17} /> Hubungkan Meta</> : <><LogIn size={17} /> Masuk untuk mulai</>}</Button><span className="security-label"><ShieldCheck size={15} /> Tanpa menyimpan password</span></div></div><div className="hero-orbit"><CirclePlay size={42} fill="currentColor" /><span>Manual play</span></div></section>
+    <section className="hero-card"><div className="hero-glow" /><div className="hero-content"><span className="kicker">MEDIA WORKSPACE</span><h2>Kelola sumber video resmi Anda.</h2><p>Hubungkan Page Meta, lihat video yang benar-benar diizinkan, lalu pilih dan putar secara manual.</p><div className="hero-actions"><Button className="primary-action" onClick={onConnect}>{auth.isAuthenticated ? <><Link2 size={17} /> Hubungkan Meta</> : <><LogIn size={17} /> Masuk dengan Google</>}</Button><span className="security-label"><ShieldCheck size={15} /> Tanpa menyimpan password</span></div></div><div className="hero-orbit"><CirclePlay size={42} fill="currentColor" /><span>Manual play</span></div></section>
     <section className="metrics-row"><Metric label="Page terhubung" value={`${accounts.length}/9`} icon={<UsersRound size={17} />} tone="blue" /><Metric label="Video tersedia" value={`${videos.length}/9`} icon={<FileVideo size={17} />} tone="violet" /><Metric label="Status koneksi" value={configured ? (accounts.length ? "Aktif" : "Siap") : "Belum siap"} icon={configured ? <CheckCircle2 size={17} /> : <AlertCircle size={17} />} tone={configured ? "green" : "amber"} /></section>
     <section className="section-block"><SectionHeading title="Page terhubung" subtitle="Maksimal 9 sumber yang Anda izinkan" action="Lihat semua" onClick={() => onNavigate("accounts")} />{loading ? <SkeletonGrid count={3} /> : accounts.length === 0 ? <EmptyState icon={<UsersRound size={24} />} title={auth.isAuthenticated ? "Belum ada Page terhubung" : "Masuk untuk menghubungkan Meta"} description={configured ? "Tekan tombol Hubungkan Meta untuk mengambil Page yang tersedia bagi akun Anda." : "Admin proyek perlu mengatur Meta App ID dan App Secret terlebih dahulu."} action={configured ? "Hubungkan Meta" : undefined} onAction={onConnect} /> : <AccountGrid accounts={accounts.slice(0, 3)} />}</section>
     <section className="section-block"><SectionHeading title="Video terbaru" subtitle="Data langsung dari sumber yang terhubung" action="Lihat semua" onClick={() => onNavigate("videos")} />{loading ? <SkeletonGrid count={3} /> : videos.length === 0 ? <EmptyState icon={<Video size={24} />} title="Belum ada video yang tersedia" description="Setelah Page terhubung dan izin Meta tersedia, video akan muncul di sini." /> : <VideoGrid videos={videos.slice(0, 3)} onPlay={onPlay} />}</section>

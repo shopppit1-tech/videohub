@@ -6,7 +6,7 @@ Membangun web app responsif yang mengikuti mockup dark navy/electric blue untuk 
 ## Pendekatan teknis
 - Frontend: React + Vite + Tailwind pada starter web-db-user.
 - Backend: Express + tRPC.
-- Identitas aplikasi: Manus OAuth untuk sesi pengguna aplikasi.
+- Identitas aplikasi: Google OAuth untuk sesi pengguna aplikasi; koneksi Meta tetap terpisah melalui Meta OAuth.
 - Integrasi Meta: server-side OAuth Authorization Code flow; App ID dan App Secret hanya dari environment secret.
 - Data: MySQL/Drizzle untuk koneksi Meta yang terenkripsi, Page yang diizinkan, dan metadata video yang diperlukan.
 - Keamanan: state OAuth sekali pakai, cookie HttpOnly/SameSite=None/Secure, token Meta tidak pernah dikirim ke browser, dan batas maksimal 9 Page/9 video di UI.
@@ -14,7 +14,7 @@ Membangun web app responsif yang mengikuti mockup dark navy/electric blue untuk 
 
 ## Ruang lingkup tahap ini
 1. Dashboard nyata dengan state kosong, loading, error, terhubung, dan belum terkonfigurasi.
-2. Tombol login Manus jika pengguna belum masuk.
+2. Tombol Masuk dengan Google jika pengguna belum masuk.
 3. Tombol Hubungkan Meta yang mengarahkan ke OAuth resmi.
 4. Callback OAuth server-side dan pertukaran code.
 5. Pengambilan Page yang tersedia melalui `/me/accounts` dan penyimpanan token Page terenkripsi.
