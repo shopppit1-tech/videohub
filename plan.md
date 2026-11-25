@@ -1,51 +1,34 @@
 # Video Hub — Rencana Implementasi
 
 ## Tujuan
-Membangun web app responsif yang mengikuti mockup dark navy/electric blue untuk menghubungkan akun/Page melalui OAuth resmi Meta, menampilkan maksimal 9 Page dan video nyata, serta menyediakan pemutaran atau pembukaan video secara manual. Tidak ada data demo, password Facebook, autoplay massal, loop tersembunyi, atau manipulasi tayangan.
+Membangun web app responsif yang memungkinkan pengguna menambahkan dan memilih sampai sembilan identitas melalui login resmi Meta. Ini adalah account switcher berbasis OAuth, bukan sembilan profil Chrome atau tampilan Facebook penuh. Tidak ada VPN, pengambilan video/post, akun demo, maupun penyimpanan password.
 
 ## Pendekatan teknis
-- Frontend: React + Vite + Tailwind pada starter web-db-user.
-- Backend: Express + tRPC.
-- Identitas aplikasi: Google OAuth untuk sesi pengguna aplikasi; koneksi Meta tetap terpisah melalui Meta OAuth.
-- Integrasi Meta: server-side OAuth Authorization Code flow; App ID dan App Secret hanya dari environment secret.
-- Data: MySQL/Drizzle untuk koneksi Meta yang terenkripsi, Page yang diizinkan, dan metadata video yang diperlukan.
-- Keamanan: state OAuth sekali pakai, cookie HttpOnly/SameSite=None/Secure, token Meta tidak pernah dikirim ke browser, dan batas maksimal 9 Page/9 video di UI.
-- Media: bila Meta memberikan URL sumber yang dapat diputar dengan izin yang sesuai, gunakan pemutar HTML5; jika tidak, gunakan tautan resmi `permalink_url` ke Meta. Tidak memalsukan thumbnail atau URL.
-
-## Ruang lingkup tahap ini
-1. Dashboard nyata dengan state kosong, loading, error, terhubung, dan belum terkonfigurasi.
-2. Tombol Masuk dengan Google jika pengguna belum masuk.
-3. Tombol Hubungkan Meta yang mengarahkan ke OAuth resmi.
-4. Callback OAuth server-side dan pertukaran code.
-5. Pengambilan Page yang tersedia melalui `/me/accounts` dan penyimpanan token Page terenkripsi.
-6. Endpoint tRPC untuk membaca Page dan video nyata.
-7. Pemutaran manual per kartu video atau pembukaan permalink resmi.
-8. Pengaturan untuk memutus koneksi Meta.
-9. Route manifest, diagnostics, preview, typecheck, dan build.
-
-## Batasan eksternal
-- Meta App ID, App Secret, valid OAuth redirect URI, permissions, dan App Review berada di akun Meta pengguna.
-- Akses video/Reels bergantung pada permission dan jenis asset yang diberikan Meta. Aplikasi tidak mengotomatisasi banyak login pribadi.
-- Deployment/public domain diperlukan agar redirect URI Meta dapat didaftarkan.
+- Frontend: React + Vite pada repo GitHub `shopppit1-tech/videohub`.
+- Hosting: Cloudflare Pages project `videohub`; repository GitHub menjadi source of truth.
+- Login: Facebook JavaScript SDK resmi dengan permission minimum `public_profile`; akses meminta login dari Meta.
+- Data: daftar slot, user ID app-scoped, token OAuth, waktu kedaluwarsa, dan slot aktif disimpan pada browser perangkat pengguna. Data ini tidak dikirim ke server Video Hub.
+- Privasi: tidak meminta atau menyimpan password; tidak memanggil Graph API untuk membaca Page, video, postingan, atau data tambahan. Token OAuth adalah kredensial sensitif lokal dan pengguna dapat menghapusnya dari UI.
+- Konfigurasi: `VITE_META_APP_ID` adalah konfigurasi publik yang perlu disediakan melalui Cloudflare Pages build environment. Domain dan redirect/allowed origins harus terdaftar di aplikasi Meta pengguna.
+- Batas eksternal: keberhasilan multi-account bergantung pada alur Meta dan sesi Facebook yang sedang ada pada browser. App tidak menjanjikan sembilan sesi browser independen atau akses penuh ke situs Facebook.
 
 ## Struktur utama
-- `client/src/pages/Home.tsx`: dashboard dan interaksi UI.
-- `client/src/index.css`: tema dan layout responsif.
-- `server/metaOAuth.ts`: login/callback Meta dan sinkronisasi Page.
-- `server/metaApi.ts`: panggilan Graph API terautentikasi.
-- `server/db.ts`: query koneksi/Page/video.
-- `drizzle/schema.ts`: tabel koneksi dan Page.
-- `server/routers.ts`: query/mutation tRPC yang terlindungi.
-- `public/manus-routes.json`: deklarasi route halaman.
+- `client/src/pages/Home.tsx`: sembilan slot, alur Meta Login, pemilihan, penghapusan, dan informasi batasan.
+- `client/src/index.css`: UI mobile-first.
+- `vite.config.ts`: build statis Vite.
+- `client/public/manus-routes.json`: manifest route.
+- GitHub Actions/Cloudflare Pages: build dan deployment dari source repository.
 
 ## Design
-- **Gaya yang dipilih: Control-room mobile** — dashboard gelap yang ringkas dengan fokus pada status koneksi dan kartu media.
-- **Core principles:** status selalu terlihat; aksi manual jelas; konten nyata tidak digantikan placeholder; kontras tinggi dan touch target besar.
-- **Color philosophy:** navy pekat memberi latar tenang, electric blue menandai aksi utama, amber dipakai hanya untuk peringatan konfigurasi.
-- **Layout paradigm:** header berstatus, strip metrik ringkas, lalu dua area konten yang dapat discroll; desktop memakai grid yang melebar, mobile memakai satu kolom.
-- **Signature elements:** glow biru tipis, kartu dengan status dot, dan tombol play berbentuk lingkaran.
-- **Interaction philosophy:** setiap aksi eksplisit dan dapat dibatalkan; tidak ada aksi yang berjalan otomatis saat halaman dibuka.
-- **Animation:** transisi 150–200ms untuk hover/focus; skeleton saat memuat; tidak ada animasi autoplay media.
-- **Typography:** Inter/system sans, hierarki tebal untuk angka dan label ringkas untuk metadata.
-- **Brand essence:** panel kontrol aman untuk mengelola media Meta milik pengguna; jelas, terkendali, dan tidak manipulatif.
-- **Brand voice:** “Hubungkan sumber resmi Anda.” dan “Pilih video lalu putar secara manual.”
+- Gaya: **calm account switcher** — panel gelap sederhana, fokus pada slot akun dan status koneksi.
+- Core principles: setiap slot menunjukkan state nyata; kontrol eksplisit; izin Meta saja; batasan dan penyimpanan token transparan.
+- Color philosophy: graphite sebagai latar agar UI tenang; biru terang menandai pilihan/aksi Meta; hijau hanya untuk status terhubung.
+- Layout paradigm: header ringkas, pilihan akun aktif, lalu sembilan slot dalam grid 2 kolom di ponsel dan 3 kolom di layar lebar.
+- Signature elements: nomor slot kecil, avatar lingkaran, dan indikator akun terpilih.
+- Interaction philosophy: pengguna menambahkan satu akun pada satu waktu, memilih akun aktif, dan dapat menghapus token lokal kapan saja.
+- Animation: transisi singkat saat hover/focus; tanpa animasi berulang.
+- Typography: system sans dengan headline padat dan label metadata ringkas.
+- Brand essence: switcher akun Meta yang sederhana dan transparan; terkontrol, jelas, aman.
+- Brand voice: “Tambahkan akun melalui login resmi Meta.” dan “Password tidak pernah masuk ke Video Hub.”
+- Wordmark & Logo: tulisan Video Hub dengan simbol f sederhana dalam kotak biru.
+- Signature brand color: Meta blue `#0866FF`.

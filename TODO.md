@@ -1,32 +1,27 @@
 # TODO — Video Hub
 
-## Dashboard nyata mengikuti mockup
-- [ ] Dashboard responsif memakai tema dark navy/electric blue dengan navigasi Beranda, Akun, Video, dan Pengaturan.
-- [ ] UI tidak menampilkan akun/video contoh; state awal menunjukkan belum ada koneksi.
-- [ ] UI memiliki state loading, error, koneksi berhasil, dan konfigurasi Meta belum tersedia.
-- [ ] Batas tampilan maksimal 9 Page dan 9 video tetap diterapkan.
+## Sembilan slot account switcher
+- [ ] Tampilkan tepat sembilan slot akun, dengan state kosong/terhubung/kedaluwarsa yang berasal dari data login nyata.
+- [ ] Pengguna dapat menambahkan akun melalui dialog login Meta resmi, memilih satu akun aktif, dan menghapus akun dari perangkat.
+- [ ] Tampilkan batas sembilan akun dan cegah penambahan slot ke-10.
+- [ ] Jangan mengisi slot dengan akun atau status demo.
 
-## Login dan koneksi resmi Meta
-- [ ] Pengguna masuk ke aplikasi memakai Google OAuth; login Google tidak menggantikan koneksi Meta.
-- [ ] `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET` hanya dibaca server-side dari secret environment.
-- [ ] Callback Google membuat sesi aplikasi yang sama dengan route API dan tidak menyimpan token Google di browser.
-- [x] Pengguna yang belum masuk diarahkan ke Google OAuth aplikasi.
-- [ ] Tombol Hubungkan Meta memakai OAuth Authorization Code resmi Meta.
-- [ ] `META_APP_ID` dan `META_APP_SECRET` hanya dibaca server-side dari secret environment.
-- [ ] OAuth state memakai nonce sekali pakai dan cookie HttpOnly yang aman.
-- [ ] Callback menukar code di server, mengambil Page yang diizinkan, dan menyimpan token terenkripsi.
-- [ ] Tidak ada password Facebook yang disimpan atau login melalui WebView palsu.
+## Login dan privasi Meta
+- [ ] Gunakan Facebook JavaScript SDK resmi dan permission minimum `public_profile`.
+- [ ] Tidak meminta atau menyimpan password Facebook.
+- [ ] Simpan identitas app-scoped dan token OAuth hanya di storage lokal browser; tidak mengirim token ke server Video Hub.
+- [ ] Sediakan tindakan hapus akun tunggal dan hapus semua data/token lokal.
+- [ ] Jelaskan bahwa ini account switcher berbasis OAuth, bukan sembilan sesi Chrome atau tampilan penuh Facebook; Meta dapat meminta login/verifikasi ulang.
+- [ ] Tidak mengambil Page, video, postingan, atau data Graph tambahan.
 
-## Data Page dan video nyata
-- [ ] Page tersambung disimpan berdasarkan pengguna aplikasi dan dapat diputus.
-- [ ] Query daftar Page tidak mengembalikan access token ke browser.
-- [ ] Query video meminta data dari Graph API sesuai permission yang tersedia.
-- [ ] Video hanya diputar saat pengguna menekan Play; fallback menggunakan permalink resmi bila source tidak dapat diputar.
-- [ ] Error permission/rate limit Meta ditampilkan secara terbaca.
+## GitHub, Cloudflare, dan konfigurasi
+- [ ] Bangun output statis dari repo `shopppit1-tech/videohub`.
+- [ ] Set `VITE_META_APP_ID` pada Cloudflare Pages; jika belum ada, UI menyatakan konfigurasi belum tersedia dan tidak berpura-pura login siap.
+- [ ] Pastikan allowed domain/origin disiapkan pada Meta Developer App milik pengguna.
+- [ ] Deploy ke project Cloudflare Pages `videohub` tanpa menghapus D1 yang ada.
 
 ## Kualitas dan delivery
-- [ ] `public/manus-routes.json` tersedia dan sesuai route.
+- [ ] `public/manus-routes.json` sesuai route.
 - [ ] Typecheck bersih.
-- [ ] Build produksi berhasil.
-- [ ] Preview menjawab `/api/health` dan halaman utama.
-- [ ] Proyek siap disimpan ke GitHub setelah integrasi Meta diuji di domain publik.
+- [ ] Build statis berhasil.
+- [ ] GitHub berisi perubahan yang dimaksud dan Cloudflare deployment berstatus sukses sebelum URL live dinyatakan selesai.
